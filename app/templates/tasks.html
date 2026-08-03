@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks - Planora{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>All Tasks</h1>
+        <p>Manage and track all your tasks in one place.</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Action Bar -->
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <div>
+            <h2>Tasks</h2>
+        </div>
+        <button class="btn btn-primary" onclick="showModal('newTaskModal')">+ New Task</button>
+    </div>
+
+    <!-- View Toggle -->
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+        <button class="btn btn-secondary" onclick="switchView('grid')">Grid View</button>
+        <button class="btn btn-outline" onclick="switchView('list')">List View</button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <div style="flex: 2;">
+                <label for="searchInput">Search</label>
+                <input type="text" id="searchInput" data-filter="search" placeholder="Search tasks...">
+            </div>
+            <div>
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter" data-filter="status">
+                    <option value="">All Status</option>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+            <div>
+                <label for="priorityFilter">Priority</label>
+                <select id="priorityFilter" data-filter="priority">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div>
+                <label for="categoryFilter">Category</label>
+                <select id="categoryFilter" data-filter="category">
+                    <option value="">All Categories</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="shopping">Shopping</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid View -->
+    <div id="gridView" style="display: none;">
+        <div id="tasksGrid" class="grid">
+            <!-- Task cards will be populated dynamically here -->
+        </div>
+    </div>
+
+    <!-- List View -->
+    <div id="listView" style="display: block;">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Due Date</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Complete Project Documentation</strong></td>
+                        <td><span class="task-status todo">To Do</span></td>
+                        <td><span class="task-priority high">High</span></td>
+                        <td>Mar 20, 2026</td>
+                        <td><span class="category-badge">Work</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-small">Edit</button>
+                            <button class="btn btn-danger btn-small">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>API Testing</strong></td>
+                        <td><span class="task-status in_progress">In Progress</span></td>
+                        <td><span class="task-priority medium">Medium</span></td>
+                        <td>Mar 12, 2026</td>
+                        <td><span class="category-badge">Work</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-small">Edit</button>
+                            <button class="btn btn-danger btn-small">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>User Interface Polish</strong></td>
+                        <td><span class="task-status todo">To Do</span></td>
+                        <td><span class="task-priority medium">Medium</span></td>
+                        <td>Mar 18, 2026</td>
+                        <td><span class="category-badge">Work</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-small">Edit</button>
+                            <button class="btn btn-danger btn-small">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New Task Modal -->
+<div id="newTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create New Task</h2>
+            <button class="modal-close" onclick="closeModal('newTaskModal')">×</button>
+        </div>
+        <form id="createTaskForm">
+            <div class="form-group">
+                <label for="taskTitle">Task Title</label>
+                <input type="text" id="taskTitle" required placeholder="Enter task title">
+            </div>
+
+            <div class="form-group">
+                <label for="taskDescription">Description</label>
+                <textarea id="taskDescription" placeholder="Describe your task..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="taskPriority">Priority</label>
+                <select id="taskPriority" required>
+                    <option value="">Select Priority</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="taskCategory">Category</label>
+                <select id="taskCategory">
+                    <option value="">Select Category</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="taskDueDate">Due Date</label>
+                <input type="date" id="taskDueDate">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadCategories() {
+        const categorySelect = document.getElementById('taskCategory');
+        if (!categorySelect) return;
+
+        // Use shared API helper which handles tokens and errors
+        try {
+            const data = await API.getCategories();
+
+            categorySelect.innerHTML = '<option value="">Select Category</option>';
+
+            if (data && data.data && data.data.length) {
+                data.data.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
+            } else {
+                // Fallback when there are no categories or user isn't authenticated
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No categories available';
+                option.disabled = true;
+                categorySelect.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            categorySelect.innerHTML = '<option value="">No categories available</option>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategories();
+        
+        // Handle task creation form
+        const createTaskForm = document.getElementById('createTaskForm');
+        if (createTaskForm) {
+            createTaskForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const taskData = {
+                    title: document.getElementById('taskTitle').value,
+                    description: document.getElementById('taskDescription').value,
+                    priority: document.getElementById('taskPriority').value,
+                    category_id: document.getElementById('taskCategory').value || null,
+                    due_date: document.getElementById('taskDueDate').value || null
+                };
+                
+                const result = await API.createTask(taskData);
+                if (result) {
+                    closeModal('newTaskModal');
+                    createTaskForm.reset();
+                    loadTasks(); // Reload tasks
+                }
+            });
+        }
+    });
+
+    function switchView(view) {
+        document.getElementById('gridView').style.display = view === 'grid' ? 'block' : 'none';
+        document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
+        // Ensure tasks are loaded when switching views
+        loadTasks();
+    }
+
+    async function loadTasks() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const data = await API.getTasks({}, { page: 1, limit: 100 });
+        if (!data || !data.data) return;
+        
+        // Update task list in the table (List View)
+        const tbody = document.querySelector('table tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            data.data.forEach(task => {
+                const row = document.createElement('tr');
+                const dueDateStr = task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date';
+                row.innerHTML = `
+                    <td><strong>${escapeHTML(task.title)}</strong></td>
+                    <td><span class="task-status ${task.status}">${task.status.replace('_', ' ').toUpperCase()}</span></td>
+                    <td><span class="task-priority ${task.priority}">${task.priority.toUpperCase()}</span></td>
+                    <td>${dueDateStr}</td>
+                    <td>${task.category_id ? 'Category' : '—'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-small" onclick="editTask('${task.id}')">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteTaskAPI('${task.id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update task grid (Grid View)
+        const tasksGrid = document.getElementById('tasksGrid');
+        if (tasksGrid) {
+            tasksGrid.innerHTML = '';
+            
+            if (data.data.length === 0) {
+                tasksGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem;">No tasks yet. Create one to get started!</p>';
+                return;
+            }
+
+            data.data.forEach(task => {
+                const dueDateStr = task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'No date';
+                const priorityClass = task.priority.toLowerCase();
+                const statusClass = task.status.replace('_', '-');
+                
+                const card = document.createElement('div');
+                card.className = `task-card ${statusClass}`;
+                card.setAttribute('data-task-id', task.id);
+                card.setAttribute('data-due-date', task.due_date || '');
+                card.innerHTML = `
+                    <h4>${escapeHTML(task.title)}</h4>
+                    <p>${escapeHTML(task.description || 'No description')}</p>
+                    <div class="task-meta">
+                        <span class="task-priority ${priorityClass}">${task.priority.toUpperCase()}</span>
+                        <span class="task-status ${statusClass}">${task.status.replace('_', ' ').toUpperCase()}</span>
+                        <span style="color: #7B0D1E;">📅 ${dueDateStr}</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-primary btn-small" onclick="editTask('${task.id}')">Edit</button>
+                        <button class="btn btn-success btn-small" onclick="toggleTaskCompletionServer('${task.id}')">✓ Complete</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteTaskServer('${task.id}')">Delete</button>
+                    </div>
+                `;
+                tasksGrid.appendChild(card);
+            });
+        }
+    }
+
+    async function deleteTaskAPI(taskId) {
+        const result = await API.deleteTask(taskId);
+        if (result || result === null) { // API returns success
+            loadTasks();
+        }
+    }
+
+    function editTask(taskId) {
+        showAlert('Edit functionality coming soon!', 'info');
+    }
+
+    // Initialize list view as default and load tasks
+    document.addEventListener('DOMContentLoaded', function() {
+        switchView('list');
+        loadTasks();
+    });
+</script>
+{% endblock %}

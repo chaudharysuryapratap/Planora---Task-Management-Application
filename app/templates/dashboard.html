@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Planora{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Dashboard</h1>
+        <p>Welcome back! Here's your task overview.</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h4>Total Tasks</h4>
+            <div class="stat-value" data-stat="total">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>To Do</h4>
+            <div class="stat-value" data-stat="todo">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>In Progress</h4>
+            <div class="stat-value" data-stat="in_progress">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>Completed</h4>
+            <div class="stat-value" data-stat="done">0</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="dashboard-header">
+        <h2>Your Tasks</h2>
+        <button class="btn btn-primary" onclick="showModal('newTaskModal')">+ New Task</button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <div>
+                <label for="searchInput">Search</label>
+                <input type="text" id="searchInput" data-filter="search" placeholder="Search tasks...">
+            </div>
+            <div>
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter" data-filter="status">
+                    <option value="">All Status</option>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+            <div>
+                <label for="priorityFilter">Priority</label>
+                <select id="priorityFilter" data-filter="priority">
+                    <option value="">All Priorities</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div>
+                <label for="sortSelect">Sort By</label>
+                <select id="sortSelect">
+                    <option value="">Default</option>
+                    <option value="date-asc">Due Date (Early First)</option>
+                    <option value="date-desc">Due Date (Late First)</option>
+                    <option value="priority-high">Priority (High First)</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Grid -->
+    <div id="tasksContainer" class="grid"></div>
+</div>
+
+<!-- New Task Modal -->
+<div id="newTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create New Task</h2>
+            <button class="modal-close" onclick="closeModal('newTaskModal')">×</button>
+        </div>
+        <form>
+            <div class="form-group">
+                <label for="taskTitle">Task Title</label>
+                <input type="text" id="taskTitle" required placeholder="Enter task title">
+            </div>
+
+            <div class="form-group">
+                <label for="taskDescription">Description</label>
+                <textarea id="taskDescription" placeholder="Describe your task..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="taskPriority">Priority</label>
+                <select id="taskPriority" required>
+                    <option value="">Select Priority</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="taskCategory">Category</label>
+                <select id="taskCategory">
+                    <option value="">Select Category</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="shopping">Shopping</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="taskDueDate">Due Date</label>
+                <input type="date" id="taskDueDate">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div id="editTaskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Task</h2>
+            <button class="modal-close" onclick="closeModal('editTaskModal')">×</button>
+        </div>
+        <form>
+            <div class="form-group">
+                <label for="editTaskTitle">Task Title</label>
+                <input type="text" id="editTaskTitle" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editTaskDescription">Description</label>
+                <textarea id="editTaskDescription"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="editTaskPriority">Priority</label>
+                <select id="editTaskPriority" required>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editTaskStatus">Status</label>
+                <select id="editTaskStatus" required>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editTaskDueDate">Due Date</label>
+                <input type="date" id="editTaskDueDate">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load real tasks from API
+    async function loadTasks() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            showAlert('Please log in first', 'warning');
+            return;
+        }
+
+        const data = await API.getTasks({}, { page: 1, limit: 100 });
+        if (!data || !data.data) return;
+        
+        const container = document.getElementById('tasksContainer');
+        container.innerHTML = '';
+        
+        if (data.data.length === 0) {
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem;">No tasks yet. Create one to get started!</p>';
+            return;
+        }
+
+        data.data.forEach(task => {
+            const dueDateStr = task.due_date ? new Date(task.due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'No date';
+            const priorityClass = task.priority.toLowerCase();
+            const statusClass = task.status.replace('_', '-');
+            
+            const card = document.createElement('div');
+            card.className = `task-card ${statusClass}`;
+            card.setAttribute('data-task-id', task.id);
+            card.innerHTML = `
+                <h4>${escapeHTML(task.title)}</h4>
+                <p>${escapeHTML(task.description || 'No description')}</p>
+                <div class="task-meta">
+                    <span class="task-priority ${priorityClass}">${task.priority.toUpperCase()}</span>
+                    <span class="task-status ${statusClass}">${task.status.replace('_', ' ').toUpperCase()}</span>
+                    <span style="color: #7B0D1E;">📅 ${dueDateStr}</span>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary btn-small" onclick="showModal('editTaskModal')">Edit</button>
+                    <button class="btn btn-success btn-small" onclick="toggleTaskCompletionServer('${task.id}')">✓ Complete</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteTaskServer('${task.id}')">Delete</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        
+        updateStats();
+    }
+
+    // Update statistics
+    function updateStats() {
+        const API = window.API;
+        if (!API) return;
+        
+        API.getTasks({}, { page: 1, limit: 100 }).then(data => {
+            if (!data || !data.data) return;
+            
+            const tasks = data.data;
+            const total = tasks.length;
+            const todo = tasks.filter(t => t.status === 'todo').length;
+            const in_progress = tasks.filter(t => t.status === 'in_progress').length;
+            const done = tasks.filter(t => t.status === 'done').length;
+            
+            document.querySelector('[data-stat="total"]').textContent = total;
+            document.querySelector('[data-stat="todo"]').textContent = todo;
+            document.querySelector('[data-stat="in_progress"]').textContent = in_progress;
+            document.querySelector('[data-stat="done"]').textContent = done;
+        });
+    }
+
+    // Filter tasks
+    function filterTasks() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
+        
+        const cards = document.querySelectorAll('.task-card');
+        cards.forEach(card => {
+            const title = card.querySelector('h4').textContent.toLowerCase();
+            const status = card.className.split(' ')[1];
+            const priority = Array.from(card.querySelector('.task-priority').classList)
+                .find(c => ['low', 'medium', 'high'].includes(c));
+            
+            const matchesSearch = title.includes(searchTerm);
+            const matchesStatus = !statusFilter || status === statusFilter;
+            const matchesPriority = !priorityFilter || priority === priorityFilter;
+            
+            card.style.display = matchesSearch && matchesStatus && matchesPriority ? '' : 'none';
+        });
+    }
+
+    // Sort tasks
+    function sortTasks(sortBy) {
+        const container = document.getElementById('tasksContainer');
+        const cards = Array.from(container.querySelectorAll('.task-card'));
+        
+        cards.sort((a, b) => {
+            switch(sortBy) {
+                case 'date-asc':
+                case 'date-desc':
+                    const dateA = new Date(a.getAttribute('data-due-date') || '9999-12-31');
+                    const dateB = new Date(b.getAttribute('data-due-date') || '9999-12-31');
+                    return sortBy === 'date-asc' ? dateA - dateB : dateB - dateA;
+                case 'priority-high':
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    const pA = Array.from(a.querySelector('.task-priority').classList).find(c => ['low', 'medium', 'high'].includes(c));
+                    const pB = Array.from(b.querySelector('.task-priority').classList).find(c => ['low', 'medium', 'high'].includes(c));
+                    return (priorityOrder[pB] || 0) - (priorityOrder[pA] || 0);
+                case 'title-asc':
+                    return a.querySelector('h4').textContent.localeCompare(b.querySelector('h4').textContent);
+                default:
+                    return 0;
+            }
+        });
+        
+        container.innerHTML = '';
+        cards.forEach(card => container.appendChild(card));
+    }
+
+    document.getElementById('sortSelect').addEventListener('change', function() {
+        if (this.value) {
+            sortTasks(this.value);
+        }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+        filterTasks();
+    });
+
+    // Filter event listeners
+    document.getElementById('statusFilter').addEventListener('change', filterTasks);
+    document.getElementById('priorityFilter').addEventListener('change', filterTasks);
+
+    // Handle new task form submission
+    const createTaskForm = document.querySelector('#newTaskModal form');
+    if (createTaskForm) {
+        createTaskForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const taskData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                category_id: document.getElementById('taskCategory').value || null,
+                due_date: document.getElementById('taskDueDate').value || null
+            };
+            
+            const result = await API.createTask(taskData);
+            if (result) {
+                closeModal('newTaskModal');
+                createTaskForm.reset();
+                loadTasks();
+            }
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTasks();
+    });
+</script>
+{% endblock %}

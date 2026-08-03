@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Planora</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background: linear-gradient(135deg, #3D1308 0%, #7B0D1E 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1><img src="{{ url_for('static', filename='Planora-logo.png') }}" alt="Planora" style="height: 3rem; vertical-align: middle;"> Planora</h1>
+            <p>Welcome Back</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('frontend.login') }}">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('frontend.register') }}">Sign up here</a></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Planora - Task Management{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="container">
+            <div class="logo"><img src="{{ url_for('static', filename='Planora-logo.png') }}" alt="Planora"> Planora</div>
+            <ul>
+                <li><a href="{{ url_for('frontend.dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('frontend.tasks') }}">Tasks</a></li>
+                <li><a href="{{ url_for('frontend.categories') }}">Categories</a></li>
+                <li><a href="{{ url_for('frontend.profile') }}">Profile</a></li>
+                <li>
+                    <form action="{{ url_for('frontend.logout') }}" method="post" style="display: inline;">
+                        <button type="submit" class="nav-link-button">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="container" style="margin-top: 1rem;">
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="background-color: #3D1308; color: white; text-align: center; padding: 2rem; margin-top: 3rem;">
+        <div class="container">
+            <p>&copy; 2026 Planora. All rights reserved. | <a href="#" style="color: #9F2042; text-decoration: none;">Privacy Policy</a> | <a href="#" style="color: #9F2042; text-decoration: none;">Terms of Service</a></p>
+        </div>
+    </footer>
+
+    <script>
+      (function() {
+        // Keep localStorage tokens in sync with session-based login state.
+        {% if session.get('access_token') and session.get('refresh_token') %}
+          localStorage.setItem('access_token', {{ session.access_token|tojson }});
+          localStorage.setItem('refresh_token', {{ session.refresh_token|tojson }});
+        {% else %}
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        {% endif %}
+      })();
+    </script>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

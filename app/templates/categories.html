@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Categories - Planora{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>Categories</h1>
+        <p>Organize your tasks with custom categories.</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Action Bar -->
+    <div class="dashboard-header" style="margin-bottom: 2rem;">
+        <h2>Category Management</h2>
+        <button class="btn btn-primary" onclick="showModal('newCategoryModal')">+ New Category</button>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="grid" id="categoriesGrid">
+        <div class="card" style="text-align: center; padding: 2rem;">
+            <p>Loading categories…</p>
+        </div>
+    </div>
+</div>
+
+<!-- New Category Modal -->
+<div id="newCategoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create New Category</h2>
+            <button class="modal-close" onclick="closeModal('newCategoryModal')">×</button>
+        </div>
+        <form>
+            <div class="form-group">
+                <label for="categoryName">Category Name</label>
+                <input type="text" id="categoryName" required placeholder="e.g., Work, Personal, Shopping">
+            </div>
+
+            <div class="form-group">
+                <label for="categoryColor">Color</label>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <input type="color" id="categoryColor" value="#3D1308" style="width: 60px; height: 40px; border: none; cursor: pointer;">
+                    <input type="text" id="categoryColorHex" value="#3D1308" readonly style="flex: 1;">
+                </div>
+                <small style="color: #7B0D1E; display: block; margin-top: 0.5rem;">Click to choose a color</small>
+            </div>
+
+            <div class="form-group">
+                <label for="categoryDescription">Description (Optional)</label>
+                <textarea id="categoryDescription" placeholder="Describe this category..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Category</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div id="editCategoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Category</h2>
+            <button class="modal-close" onclick="closeModal('editCategoryModal')">×</button>
+        </div>
+        <form>
+            <div class="form-group">
+                <label for="editCategoryName">Category Name</label>
+                <input type="text" id="editCategoryName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editCategoryColor">Color</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="color" id="editCategoryColor" style="width: 60px; height: 40px; border: none; cursor: pointer;">
+                    <input type="text" id="editCategoryColorHex" readonly style="flex: 1;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="editCategoryDescription">Description</label>
+                <textarea id="editCategoryDescription"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Color picker sync
+    document.getElementById('categoryColor')?.addEventListener('input', function() {
+        document.getElementById('categoryColorHex').value = this.value;
+    });
+
+    document.getElementById('editCategoryColor')?.addEventListener('input', function() {
+        document.getElementById('editCategoryColorHex').value = this.value;
+    });
+</script>
+{% endblock %}

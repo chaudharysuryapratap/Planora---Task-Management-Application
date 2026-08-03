@@ -156,4 +156,4 @@ run.py              # Development entry point
 
 ## License
 
-MIT License
+No license has been selected yet. Add a license before presenting this as an open-source project.
