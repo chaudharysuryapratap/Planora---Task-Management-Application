@@ -154,6 +154,7 @@ run.py              # Development entry point
 - Browser authentication currently uses tokens stored in `localStorage`. A production deployment should prefer secure, HttpOnly cookies with CSRF protection.
 - The dashboard loads up to 100 tasks for client-side statistics.
 
+
 ## License
 
-No license has been selected yet. Add a license before presenting this as an open-source project.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
