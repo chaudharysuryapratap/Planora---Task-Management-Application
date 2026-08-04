@@ -2,7 +2,11 @@
 
 Planora is a Flask task-management application with a server-rendered web interface and a JWT-protected REST API.
 
-![Planora preview](webpage.png)
+## Live Application
+
+[🚀 Open Planora Live](http://planora.ap-southeast-2.elasticbeanstalk.com)
+
+> The application is hosted on AWS Elastic Beanstalk with Amazon RDS PostgreSQL.
 
 ## Features
 
