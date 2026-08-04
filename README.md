@@ -4,7 +4,7 @@ Planora is a Flask task-management application with a server-rendered web interf
 
 ## Live Application
 
-[🚀 Open Planora Live](http://planora.ap-southeast-2.elasticbeanstalk.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Open_Planora-success?style=for-the-badge)](http://planora.ap-southeast-2.elasticbeanstalk.com)
 
 > The application is hosted on AWS Elastic Beanstalk with Amazon RDS PostgreSQL.
 
